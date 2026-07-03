@@ -1,17 +1,17 @@
 import AdminLayout from "@/components/admin/AdminLayout";
+import { auth } from "@clerk/nextjs/server";
 
 export const metadata = {
-    title: "GoCart. - Admin",
-    description: "GoCart. - Admin",
+  title: "ShopKart. - Admin",
+  description: "ShopKart. - Admin",
 };
 
-export default function RootAdminLayout({ children }) {
+export default async function RootAdminLayout({ children }) {
+  const { isAuthenticated, redirectToSignIn } = await auth();
 
-    return (
-        <>
-            <AdminLayout>
-                {children}
-            </AdminLayout>
-        </>
-    );
+  if (!isAuthenticated) {
+    return redirectToSignIn();
+  }
+
+  return <AdminLayout>{children}</AdminLayout>;
 }

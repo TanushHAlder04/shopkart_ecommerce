@@ -37,8 +37,33 @@ export default function CreateStore() {
 
     const fetchSellerStatus = async () => {
         // Logic to check if the store is already submitted
-
-
+        const token = await getToken()
+        try {
+            const {data} = await axios.get('/api/store/create',{headers: {Authorization: `Bearer ${token}`}})
+            if(['approved', 'rejected', 'pending'].includes(data.status)){
+                setStatus(data.status)
+                setAlreadySubmitted(true)
+                switch (data.status) {
+                    case 'approved':
+                        setMessage("Your Store is approved you can now add products to your store from dashboard")
+                        setTimeout(()=>router.push("/store"),5000)                       
+                        break;
+                    case 'approved':
+                        setMessage("Your Store is rejected ,contact the admin for more details")                      
+                        break;
+                    case 'pending':
+                        setMessage("Your Store is pending , please wait for admin to approve your store")                      
+                        break;    
+                
+                    default:
+                        break;
+                }
+            }else{
+                setAlreadySubmitted(false)
+            }
+        } catch (error) {
+            toast.error(error?.response?.data?.error || error.message)
+        } 
         setLoading(false)
     }
 
@@ -56,21 +81,25 @@ export default function CreateStore() {
             formData.append("username",storeInfo.username)
             formData.append("email",storeInfo.email)
             formData.append("contact",storeInfo.contact)
-            formData.append("addrees",storeInfo.addrees)
+            formData.append("address",storeInfo.address)
             formData.append("image",storeInfo.image)
 
             const {data} = await axios.post('/api/store/create',formData,{headers: {Authorization: `Bearer ${token}`}})
             toast.success(data.message)
+            await fetchSellerStatus()
+
         } catch (error) {
-            toast.error(error?.response?.data?.erro ||error.message)
+            toast.error(error?.response?.data?.error ||error.message)
         }
 
 
     }
 
     useEffect(() => {
-        fetchSellerStatus()
-    }, [])
+        if(user){
+            fetchSellerStatus()
+        }
+    }, [user])
 
     if(!user){
         return (

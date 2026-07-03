@@ -1,6 +1,6 @@
 import imagekit from "@/configs/imagekit";
 import { prisma } from "@/lib/prisma";
-import { getAuth } from "@clerk/nextjs/server";
+import { getAuth , clerkClient } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
 
@@ -8,6 +8,26 @@ import { NextResponse } from "next/server";
 export async function POST(request) {
     try{
         const {userId} = getAuth(request)
+
+        if (!userId) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+        }
+
+        // Step 1 — ensure user exists in DB
+        const client = await clerkClient()
+        const clerkUser = await client.users.getUser(userId)
+
+        await prisma.user.upsert({
+            where: { id: userId },
+            update: {},
+            create: {
+                id: userId,
+                email: clerkUser.emailAddresses[0].emailAddress,
+                name: `${clerkUser.firstName} ${clerkUser.lastName}`,
+                image: clerkUser.imageUrl,
+            }
+        })
+
         //Get the data from the form
         const formData = await request.formData()
 
@@ -39,7 +59,7 @@ export async function POST(request) {
         })
 
         if(isUsernameTaken){
-            return NextResponse.json({error: "usernamee already taken"},{status: 404})
+            return NextResponse.json({error: "username already taken"},{status: 404})
         }
 
         //image upload to imagekit
@@ -104,8 +124,9 @@ export async function GET(request) {
         return NextResponse.json({status: "not registered"})
 
     }catch(error){
+        console.error("GET error:", error.message)
         console.error(error);
-        return NextResponse.json({error: error.code || error.message}, {status:404})
+        return NextResponse.json({error: error.code || error.message}, {status:400})
     }
     
 }
