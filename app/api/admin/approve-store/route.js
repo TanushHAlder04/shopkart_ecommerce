@@ -1,13 +1,13 @@
 import { prisma } from "@/lib/prisma"
 import authAdmin from "@/middlewares/authAdmin"
-import { getAuth } from "@clerk/nextjs/server"
+import { auth } from '@clerk/nextjs/server';
 import { NextResponse } from "next/server"
 
 
 //Approve Seller
 export async function POST(request) {
     try {
-        const { userId } = getAuth(request)
+        const { userId } = await auth()
         const isAdmin = await authAdmin(userId)
 
         if (!isAdmin) {
@@ -41,7 +41,7 @@ export async function POST(request) {
 //Get all pending and rejected stores  
 export async function GET(request){
     try {
-        const {userId} = getAuth(request)
+        const { userId } = await auth()
         const isAdmin = await authAdmin(userId)
 
         if(!isAdmin){

@@ -1,31 +1,54 @@
 'use client'
-import React from 'react'
+import React, { useState } from 'react'
 import toast from 'react-hot-toast';
+import { X, Sparkles } from 'lucide-react';
 
-export default function Banner() {
+export default function Banner({ isOpen: controlledIsOpen, setIsOpen: controlledSetIsOpen }) {
+    const [internalIsOpen, setInternalIsOpen] = useState(true);
 
-    const [isOpen, setIsOpen] = React.useState(true);
+    const isControlled = controlledIsOpen !== undefined && controlledSetIsOpen !== undefined;
+    const isOpen = isControlled ? controlledIsOpen : internalIsOpen;
+    const setIsOpen = isControlled ? controlledSetIsOpen : setInternalIsOpen;
 
     const handleClaim = () => {
         setIsOpen(false);
-        toast.success('Coupon copied to clipboard!');
-        navigator.clipboard.writeText('NEW20');
+        toast.success('Coupon NEW20 copied to clipboard!');
+        if (typeof navigator !== 'undefined' && navigator.clipboard) {
+            navigator.clipboard.writeText('NEW20');
+        }
     };
 
-    return isOpen && (
-        <div className="w-full px-6 py-1 font-medium text-sm text-white text-center bg-gradient-to-r from-violet-500 via-[#9938CA] to-[#E0724A]">
-            <div className='flex items-center justify-between max-w-7xl  mx-auto'>
-                <p>Get 20% OFF on Your First Order!</p>
-                <div className="flex items-center space-x-6">
-                    <button onClick={handleClaim} type="button" className="font-normal text-gray-800 bg-white px-7 py-2 rounded-full max-sm:hidden">Claim Offer</button>
-                    <button onClick={() => setIsOpen(false)} type="button" className="font-normal text-gray-800 py-2 rounded-full">
-                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <rect y="12.532" width="17.498" height="2.1" rx="1.05" transform="rotate(-45.74 0 12.532)" fill="#fff" />
-                            <rect x="12.533" y="13.915" width="17.498" height="2.1" rx="1.05" transform="rotate(-135.74 12.533 13.915)" fill="#fff" />
-                        </svg>
+    if (!isOpen) return null;
+
+    return (
+        <div className="w-full px-4 py-2 sm:px-5 sm:py-2.5 text-xs sm:text-sm text-white bg-gradient-to-r from-violet-600 via-purple-600 to-orange-500 rounded-2xl shadow-lg shadow-purple-950/15 border border-white/20 transition-all duration-300 pointer-events-auto animate-in fade-in slide-in-from-top-2">
+            <div className="flex items-center justify-between gap-3 max-w-7xl mx-auto">
+                <div className="flex items-center gap-2 text-left">
+                    <span className="hidden sm:flex p-1 bg-white/20 rounded-lg shrink-0">
+                        <Sparkles size={14} className="text-yellow-200" />
+                    </span>
+                    <p className="font-medium tracking-tight">
+                        🎉 Get <span className="underline decoration-yellow-300 decoration-2 font-bold">20% OFF</span> on Your First Order with code <span className="font-bold bg-white/20 px-1.5 py-0.5 rounded text-white">NEW20</span>!
+                    </p>
+                </div>
+                <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+                    <button
+                        onClick={handleClaim}
+                        type="button"
+                        className="font-semibold text-neutral-900 bg-white hover:bg-neutral-100 active:scale-95 transition-all px-3 py-1 sm:px-4 sm:py-1 rounded-xl text-xs shadow-sm cursor-pointer"
+                    >
+                        Claim Offer
+                    </button>
+                    <button
+                        onClick={() => setIsOpen(false)}
+                        type="button"
+                        aria-label="Dismiss notification"
+                        className="p-1 hover:bg-white/20 rounded-lg text-white/90 hover:text-white transition-colors cursor-pointer"
+                    >
+                        <X size={16} />
                     </button>
                 </div>
             </div>
         </div>
     );
-};
+}

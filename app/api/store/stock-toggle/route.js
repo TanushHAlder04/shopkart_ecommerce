@@ -1,13 +1,13 @@
 import { prisma } from "@/lib/prisma";
 import authSeller from "@/middlewares/authSeller";
-import { getAuth } from "@clerk/nextjs/server";
+import { auth } from '@clerk/nextjs/server';
 import { NextResponse } from "next/server";
 
 
 //Toggle Stock of a Product
 export async function POST(request){
     try {
-        const {userId} = getAuth(request)
+        const { userId } = await auth()
         const {productId} = await request.json()
 
         if(!productId){
@@ -25,7 +25,7 @@ export async function POST(request){
             where: {id: productId , storeId}
         })
 
-        if(!productId){
+        if(!product){
             return NextResponse.json({error: "no product found"},{status:404})
         }
 

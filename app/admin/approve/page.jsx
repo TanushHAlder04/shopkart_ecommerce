@@ -1,5 +1,5 @@
 'use client'
-import { storesDummyData } from "@/assets/assets"
+
 import StoreInfo from "@/components/admin/StoreInfo"
 import Loading from "@/components/Loading"
 import { useAuth, useUser } from "@clerk/nextjs"
@@ -18,7 +18,7 @@ export default function AdminApprove() {
 
     const fetchStores = async () => {
        try {
-        const{token} = await getToken()
+        const token = await getToken()
         const {data} = await axios.get('/api/admin/approve-store' , {
                 headers: {Authorization: `Bearer ${token}`}
             })
@@ -32,7 +32,7 @@ export default function AdminApprove() {
     const handleApprove = async ({ storeId, status }) => {
         // Logic to approve a store
         try {
-              const{token} = await getToken()
+              const token = await getToken()
               const {data} = await axios.post('/api/admin/approve-store' ,{storeId,status}, {
                    headers: {Authorization: `Bearer ${token}`}
             })

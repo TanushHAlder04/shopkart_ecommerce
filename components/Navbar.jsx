@@ -1,104 +1,240 @@
 'use client'
-import { Search, ShoppingCart } from "lucide-react";
-import Link from "next/link";
-import { PackageIcon } from "lucide-react"
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { useSelector } from "react-redux";
+import { Search, ShoppingCart, PackageIcon, Menu, X, ArrowRight } from "lucide-react"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { useState, useEffect } from "react"
+import { useSelector } from "react-redux"
 import { useUser, useClerk, UserButton } from "@clerk/nextjs"
 
-const Navbar = () => {
+import Banner from "@/components/Banner"
 
+const Navbar = () => {
     const { user } = useUser()
     const { openSignIn } = useClerk()
-
-    const router = useRouter();
+    const router = useRouter()
 
     const [search, setSearch] = useState('')
+    const [isScrolled, setIsScrolled] = useState(false)
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
     const cartCount = useSelector(state => state.cart.total)
+
+    useEffect(() => {
+        const handleScroll = () => setIsScrolled(window.scrollY > 20)
+        window.addEventListener('scroll', handleScroll, { passive: true })
+        return () => window.removeEventListener('scroll', handleScroll)
+    }, [])
 
     const handleSearch = (e) => {
         e.preventDefault()
         router.push(`/shop?search=${search}`)
+        setIsMobileMenuOpen(false)
     }
 
     return (
-        <nav className="relative bg-white">
-            <div className="mx-6">
-                <div className="flex items-center justify-between max-w-7xl mx-auto py-4  transition-all">
+        <header className="fixed top-3 left-1/2 -translate-x-1/2 w-[92%] max-w-5xl z-50 flex flex-col gap-2 pointer-events-none">
+            {/* Top Notification Banner */}
+            <Banner />
 
-                    <Link href="/" className="relative text-4xl font-semibold text-slate-700">
-                        <span className="text-green-600">go</span>cart<span className="text-green-600 text-5xl leading-0">.</span>
-                        <p className="absolute text-xs font-semibold -top-1 -right-8 px-3 p-0.5 rounded-full flex items-center gap-2 text-white bg-green-500">
-                            plus
-                        </p>
+            {/* Main Pill Navbar */}
+            <nav
+                className={`w-full rounded-full transition-all duration-300 ease-in-out border pointer-events-auto ${isScrolled
+                    ? 'bg-white/85 backdrop-blur-xl shadow-lg shadow-black/5 border-slate-200/80 py-2 sm:py-2.5 px-4 sm:px-6'
+                    : 'bg-white/70 backdrop-blur-md shadow-sm border-slate-200/60 py-2.5 sm:py-3 px-4 sm:px-6'
+                    }`}
+                aria-label="Main Navigation"
+            >
+                <div className="flex items-center justify-between gap-3">
+                    {/* Logo */}
+                    <Link
+                        href="/"
+                        className="relative flex items-center text-2xl font-semibold text-slate-700 shrink-0 select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-black rounded-full"
+                    >
+                        <span className="text-blue-700">Shop</span>Kart
+                        {user?.publicMetadata?.plan === 'plus' && (
+                            <span className="absolute -top-2 -right-8 text-[10px] font-semibold px-2 py-0.5 rounded-full text-white bg-blue-600">
+                                plus
+                            </span>
+                        )}
                     </Link>
 
-                    {/* Desktop Menu */}
-                    <div className="hidden sm:flex items-center gap-4 lg:gap-8 text-slate-600">
-                        <Link href="/">Home</Link>
-                        <Link href="/shop">Shop</Link>
-                        <Link href="/">About</Link>
-                        <Link href="/">Contact</Link>
-
-                        <form onSubmit={handleSearch} className="hidden xl:flex items-center w-xs text-sm gap-2 bg-slate-100 px-4 py-3 rounded-full">
-                            <Search size={18} className="text-slate-600" />
-                            <input className="w-full bg-transparent outline-none placeholder-slate-600" type="text" placeholder="Search products" value={search} onChange={(e) => setSearch(e.target.value)} required />
-                        </form>
-
-                        <Link href="/cart" className="relative flex items-center gap-2 text-slate-600">
-                            <ShoppingCart size={18} />
-                            Cart
-                            <button className="absolute -top-1 left-3 text-[8px] text-white bg-slate-600 size-3.5 rounded-full">{cartCount}</button>
+                    {/* Center: Desktop Links */}
+                    <div className="hidden md:flex items-center gap-1 lg:gap-2 text-[14px] font-medium text-slate-600">
+                        <Link
+                            href="/"
+                            className="px-3 py-1.5 rounded-full hover:text-black hover:bg-neutral-100/70 transition-all duration-150"
+                        >
+                            Home
                         </Link>
-
-                        {
-                            !user ? (
-
-                                <button onClick={openSignIn} className="px-8 py-2 bg-indigo-500 hover:bg-indigo-600 transition text-white rounded-full">
-                                    Login
-                                </button>
-                            ) : (
-                                <UserButton>
-                                    <UserButton.MenuItems>
-                                        <UserButton.Action labelIcon={<PackageIcon size={16} />} label="My Orders" onClick={() => router.push('/orders')} />
-                                    </UserButton.MenuItems>
-                                </UserButton>
-                            )
-                        }
-
-
+                        <Link
+                            href="/shop"
+                            className="px-3 py-1.5 rounded-full hover:text-black hover:bg-neutral-100/70 transition-all duration-150"
+                        >
+                            Shop
+                        </Link>
+                        <Link
+                            href="/#about"
+                            className="px-3 py-1.5 rounded-full hover:text-black hover:bg-neutral-100/70 transition-all duration-150"
+                        >
+                            About
+                        </Link>
                     </div>
 
-                    {/* Mobile User Button  */}
-                    <div className="sm:hidden">
-                        {user ? (
-                            <div>
+                    {/* Desktop Search */}
+                    <form
+                        onSubmit={handleSearch}
+                        className="hidden xl:flex items-center w-64 text-sm gap-2 bg-neutral-100/80 px-4 py-2 rounded-full"
+                    >
+                        <Search size={16} className="text-slate-500 shrink-0" />
+                        <input
+                            className="w-full bg-transparent outline-none placeholder-slate-500 text-slate-700"
+                            type="text"
+                            placeholder="Search products"
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                        />
+                    </form>
+
+                    {/* Right: Desktop Actions */}
+                    <div className="hidden md:flex items-center gap-2 lg:gap-3 text-[14px]">
+                        <Link
+                            href="/cart"
+                            className="relative flex items-center gap-1.5 px-3 py-1.5 rounded-full text-slate-600 hover:text-black hover:bg-neutral-100/70 transition-all duration-150"
+                        >
+                            <ShoppingCart size={17} />
+                            <span className="hidden lg:inline">Cart</span>
+                            <span className="absolute -top-1 -right-1 text-[9px] leading-none text-white bg-black size-4 flex items-center justify-center rounded-full">
+                                {cartCount}
+                            </span>
+                        </Link>
+
+                        {!user ? (
+                            <button
+                                onClick={openSignIn}
+                                className="inline-flex items-center gap-1.5 px-4 py-2 font-medium text-white bg-black hover:bg-neutral-800 rounded-full shadow-sm shadow-black/10 transition-all duration-150 active:scale-95 group"
+                            >
+                                <span>Login</span>
+                                <ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform duration-200" />
+                            </button>
+                        ) : (
+                            <div className="pl-1">
                                 <UserButton>
                                     <UserButton.MenuItems>
-                                        <UserButton.Action labelIcon={<ShoppingCart size={16} />} label="Cart" onClick={() => router.push('/cart')} />
-                                    </UserButton.MenuItems>
-                                </UserButton> 
-                                 <UserButton>
-                                    <UserButton.MenuItems>
-                                        <UserButton.Action labelIcon={<PackageIcon size={16} />} label="My Orders" onClick={() => router.push('/orders')} />
+                                        <UserButton.Action
+                                            labelIcon={<PackageIcon size={16} />}
+                                            label="My Orders"
+                                            onClick={() => router.push('/orders')}
+                                        />
                                     </UserButton.MenuItems>
                                 </UserButton>
                             </div>
+                        )}
+                    </div>
 
+                    {/* Mobile: Cart + User/Login + Menu Toggle */}
+                    <div className="flex md:hidden items-center gap-1.5">
+                        <Link
+                            href="/cart"
+                            className="relative p-2 text-slate-600 hover:text-black hover:bg-neutral-100 rounded-full transition-colors"
+                        >
+                            <ShoppingCart size={19} />
+                            <span className="absolute top-0 right-0 text-[9px] leading-none text-white bg-black size-4 flex items-center justify-center rounded-full">
+                                {cartCount}
+                            </span>
+                        </Link>
+
+                        {user ? (
+                            <UserButton>
+                                <UserButton.MenuItems>
+                                    <UserButton.Action
+                                        labelIcon={<PackageIcon size={16} />}
+                                        label="My Orders"
+                                        onClick={() => router.push('/orders')}
+                                    />
+                                </UserButton.MenuItems>
+                            </UserButton>
                         ) : (
-                            <button onClick={openSignIn} className="px-7 py-1.5 bg-indigo-500 hover:bg-indigo-600 text-sm transition text-white rounded-full">
+                            <button
+                                onClick={openSignIn}
+                                className="text-xs px-3 py-1.5 font-medium text-white bg-black rounded-full"
+                            >
                                 Login
                             </button>
-                        )
+                        )}
 
-                        }
-
+                        <button
+                            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                            className="p-1.5 text-neutral-700 hover:text-black hover:bg-neutral-100 rounded-full transition-colors focus:outline-none"
+                            aria-label="Toggle mobile navigation menu"
+                        >
+                            {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+                        </button>
                     </div>
                 </div>
-            </div>
-            <hr className="border-gray-300" />
-        </nav>
+            </nav>
+
+            {/* Mobile Expanded Menu Panel */}
+            {isMobileMenuOpen && (
+                <div className="md:hidden mt-2 p-5 bg-white/95 backdrop-blur-2xl rounded-3xl border border-slate-200/80 shadow-2xl shadow-black/10 animate-in fade-in zoom-in-95 duration-200 pointer-events-auto">
+                    <form
+                        onSubmit={handleSearch}
+                        className="flex items-center gap-2 bg-neutral-100 px-4 py-2.5 rounded-full mb-4"
+                    >
+                        <Search size={16} className="text-slate-500 shrink-0" />
+                        <input
+                            className="w-full bg-transparent outline-none placeholder-slate-500 text-slate-700 text-sm"
+                            type="text"
+                            placeholder="Search products"
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                        />
+                    </form>
+
+                    <div className="flex flex-col gap-3 text-sm font-medium text-neutral-700">
+                        <div className="py-2 border-b border-neutral-100">
+                            <p className="text-xs uppercase tracking-wider text-neutral-400 font-semibold mb-2">
+                                Navigation
+                            </p>
+                            <Link
+                                href="/"
+                                onClick={() => setIsMobileMenuOpen(false)}
+                                className="block py-2 px-3 rounded-lg hover:bg-neutral-100 transition-colors"
+                            >
+                                Home
+                            </Link>
+                            <Link
+                                href="/shop"
+                                onClick={() => setIsMobileMenuOpen(false)}
+                                className="block py-2 px-3 rounded-lg hover:bg-neutral-100 transition-colors"
+                            >
+                                Shop
+                            </Link>
+                            <Link
+                                href="/#about"
+                                onClick={() => setIsMobileMenuOpen(false)}
+                                className="block py-2 px-3 rounded-lg hover:bg-neutral-100 transition-colors"
+                            >
+                                About
+                            </Link>
+                        </div>
+
+                        {!user && (
+                            <div className="pt-2">
+                                <button
+                                    onClick={() => {
+                                        setIsMobileMenuOpen(false)
+                                        openSignIn()
+                                    }}
+                                    className="w-full flex items-center justify-center gap-1.5 py-2.5 px-4 rounded-full bg-black text-white font-medium hover:bg-neutral-800 transition-colors"
+                                >
+                                    <span>Login</span>
+                                    <ArrowRight size={14} />
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
+        </header>
     )
 }
 

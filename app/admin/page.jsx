@@ -1,5 +1,5 @@
 'use client'
-import { dummyAdminDashboardData } from "@/assets/assets"
+
 import Loading from "@/components/Loading"
 import OrdersAreaChart from "@/components/OrdersAreaChart"
 import { useAuth } from "@clerk/nextjs"
@@ -15,7 +15,13 @@ export default function AdminDashboard() {
     const currency = process.env.NEXT_PUBLIC_CURRENCY_SYMBOL || '$'
 
     const [loading, setLoading] = useState(true)
-    const [dashboardData, setDashboardData] = useState(dummyAdminDashboardData)
+    const [dashboardData, setDashboardData] = useState({
+        products: 0,
+        revenue: 0,
+        orders: 0,
+        stores: 0,
+        allOrders: []
+    })
 
     const dashboardCardsData = [
         { title: 'Total Products', value: dashboardData.products, icon: ShoppingBasketIcon },

@@ -38,6 +38,7 @@ model Product {
     images      String[]
     category    String
     inStock     Boolean  @default(true)
+    fts         Unsupported("tsvector")?
     storeId     String
     createdAt   DateTime @default(now())
     updatedAt   DateTime @updatedAt
@@ -147,21 +148,30 @@ model Coupon {
 
 // Required for creating a Store: userId, name, username, email, contact, logo, description, address (optional: , status, isActive)
 model Store {
-    id          String   @id @default(cuid())
-    userId      String   @unique
-    name        String
-    description String
-    username    String   @unique
-    address     String
-    status      String   @default("pending")
-    isActive    Boolean  @default(false)
-    logo        String
-    email       String
-    contact     String
-    createdAt   DateTime @default(now())
-    updatedAt   DateTime @updatedAt
+    id                  String   @id @default(cuid())
+    userId              String   @unique
+    name                String
+    description         String
+    username            String   @unique
+    address             String
+    status              String   @default("pending")
+    isActive            Boolean  @default(false)
+    logo                String
+    email               String
+    contact             String
+    stripeAccountId     String?
+    stripeAccountStatus String   @default("unlinked")
+    createdAt           DateTime @default(now())
+    updatedAt           DateTime @updatedAt
 
     Product Product[]
     Order   Order[]
     user    User      @relation(fields: [userId], references: [id])
 }
+
+// Model to enforce webhook idempotency
+model StripeEvent {
+    id        String   @id
+    createdAt DateTime @default(now())
+}
+

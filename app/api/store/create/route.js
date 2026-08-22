@@ -1,16 +1,21 @@
-import imagekit from "@/configs/imagekit";
+import imagekit, { toFile } from "@/configs/imagekit";
 import { prisma } from "@/lib/prisma";
-import { getAuth , clerkClient } from "@clerk/nextjs/server";
+import { clerkClient, auth } from '@clerk/nextjs/server';
 import { NextResponse } from "next/server";
-
+import { storeCreateLimiter, checkRateLimit } from "@/middlewares/rateLimit";
 
 //create the store
 export async function POST(request) {
     try{
-        const {userId} = getAuth(request)
+        const { userId } = await auth()
 
         if (!userId) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+        }
+
+        const limitRes = await checkRateLimit(storeCreateLimiter, userId);
+        if (!limitRes.success) {
+            return NextResponse.json({ error: "Daily store creation limit reached." }, { status: 429 });
         }
 
         // Step 1 — ensure user exists in DB
@@ -64,20 +69,26 @@ export async function POST(request) {
 
         //image upload to imagekit
         const buffer = Buffer.from(await image.arrayBuffer());
-        const response = await imagekit.upload({
-            file: buffer,
+        const file = await toFile(buffer, image.name);
+        const response = await imagekit.files.upload({
+            file: file,
             fileName: image.name,
             folder: "logos"
         })
 
-        const optimizedImage = imagekit.url({
-            path: response.filePath,
-            transformations: [
-                {quality: 'auto'},
-                {format: 'webp'},
-                {width: '512'}
-            ]
-        })
+        const optimizedImage = imagekit.helper.buildSrc({
+    urlEndpoint: process.env.IMAGEKIT_URL_ENDPOINT,
+    src: response.filePath,
+    transformation: [
+        {
+            quality: 80,
+            format: 'webp',
+            width: 512,
+        }
+    ]
+})
+
+        
 
         const newStore = await prisma.store.create({
             data:{
@@ -109,7 +120,10 @@ export async function POST(request) {
 //Check is user have already registered a store if yes then send the status of the store
 export async function GET(request) {
     try{
-         const {userId} = getAuth(request)
+         const { userId } = await auth()
+         if (!userId) {
+             return NextResponse.json({ status: "not registered" })
+         }
 
         //check is user have already registerd a store
         const store = await prisma.store.findFirst({

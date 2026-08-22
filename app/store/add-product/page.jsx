@@ -1,7 +1,9 @@
 'use client'
 import { assets } from "@/assets/assets"
+import { useAuth } from "@clerk/nextjs"
+import axios from "axios"
 import Image from "next/image"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { toast } from "react-hot-toast"
 
 export default function StoreAddProduct() {
@@ -17,7 +19,27 @@ export default function StoreAddProduct() {
         category: "",
     })
     const [loading, setLoading] = useState(false)
+    const [storeInfo, setStoreInfo] = useState(null)
 
+    const {getToken} = useAuth()
+
+    const fetchStoreStatus = async () => {
+        try {
+            let token = null;
+            try {
+                token = await getToken();
+            } catch (e) {}
+            const headers = token ? { Authorization: `Bearer ${token}` } : {};
+            const { data } = await axios.get('/api/store/is-seller', { headers });
+            setStoreInfo(data.storeInfo);
+        } catch (err) {
+            console.error(err);
+        }
+    }
+
+    useEffect(() => {
+        fetchStoreStatus()
+    }, [])
 
     const onChangeHandler = (e) => {
         setProductInfo({ ...productInfo, [e.target.name]: e.target.value })
@@ -25,8 +47,49 @@ export default function StoreAddProduct() {
 
     const onSubmitHandler = async (e) => {
         e.preventDefault()
-        // Logic to add a product
-        
+        try {
+            //if no images are uploaded then return
+            if(!images[1] &&  !images[2] && !images[3] && !images[4]){
+                return toast.error('Plsease upload atleast one image')
+            }
+            setLoading(true)
+
+            const formData = new FormData()
+            formData.append('name',productInfo.name)
+            formData.append('description',productInfo.description)
+            formData.append('mrp',productInfo.mrp)
+            formData.append('price',productInfo.price)
+            formData.append('category',productInfo.category)
+
+            //Adding  Images To FormData
+            Object.keys(images).forEach((key)=>{
+                images[key] && formData.append('images',images[key])
+            })
+
+            const token = await getToken()
+            const {data} = await axios.post('/api/store/product',formData,{
+                headers: { Authorization:`Bearer ${token}`}})
+            toast.success(data.message)
+
+            //reset form
+            setProductInfo({
+                  name: "",
+                  description: "",
+                   mrp: 0,
+                  price: 0,
+                   category: "",
+             })
+    
+        //reset imaages
+        setImages({ 1: null, 2: null, 3: null, 4: null })
+
+        } catch (error) {
+           toast.error(error?.response?.data?.error || error.message)  
+        }
+        finally{
+            setLoading(false)
+        }
+
     }
 
 
@@ -72,9 +135,19 @@ export default function StoreAddProduct() {
                 ))}
             </select>
 
-            <br />
+            {storeInfo && storeInfo.stripeAccountStatus !== 'active' && (
+                <p className="text-amber-600 text-sm mt-4 bg-amber-50 p-3 rounded border border-amber-200">
+                    Product publishing is disabled until your Stripe Connect account is connected and activated in the dashboard.
+                </p>
+            )}
 
-            <button disabled={loading} className="bg-slate-800 text-white px-6 mt-7 py-2 hover:bg-slate-900 rounded transition">Add Product</button>
+            <button
+                id="add-product-btn"
+                disabled={loading || (storeInfo && storeInfo.stripeAccountStatus !== 'active')}
+                className="bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed text-white px-6 mt-7 py-2 hover:bg-slate-900 rounded transition"
+            >
+                Add Product
+            </button>
         </form>
     )
 }

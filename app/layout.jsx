@@ -7,15 +7,15 @@ import "./globals.css";
 const outfit = Outfit({ subsets: ["latin"], weight: ["400", "500", "600"] });
 
 export const metadata = {
-    title: "SHOPkart - Shop Smartly!",
+    title: "ShopKart - Shop Smartly!",
     description: "Shop smarter, Live better. Discover thousands of products. ",
 };
 
 export default function RootLayout({ children }) {
     return (
         <ClerkProvider>
-            <html lang="en">
-                <body className={`${outfit.className} antialiased`}>
+            <html lang="en" className="scroll-smooth">
+                <body className={`${outfit.className} antialiased  bg-[#F7F5EE]`}>
                     <StoreProvider>
                         <Toaster />
                         {children}

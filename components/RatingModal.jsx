@@ -4,8 +4,15 @@ import { Star } from 'lucide-react';
 import React, { useState } from 'react'
 import { XIcon } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useAuth } from '@clerk/nextjs';
+import { useDispatch } from 'react-redux';
+import { addRating } from '@/lib/features/rating/ratingSlice';
+import axios from 'axios';
 
 const RatingModal = ({ ratingModal, setRatingModal }) => {
+
+    const {getToken} = useAuth()
+    const dispatch = useDispatch()
 
     const [rating, setRating] = useState(0);
     const [review, setReview] = useState('');
@@ -18,7 +25,18 @@ const RatingModal = ({ ratingModal, setRatingModal }) => {
             return toast('write a short review');
         }
 
-        setRatingModal(null);
+        try {
+            const token = await getToken()
+            const {data} = await axios.post('/api/rating',{productId: ratingModal.productId, orderId: ratingModal.orderId , rating , review},{
+                headers :{Authorization :`Bearer ${token}`}
+            })
+            dispatch(addRating(data.rating))
+            toast.success(data.message)
+            setRatingModal(null);
+        } catch (error) {
+            toast.error(error?.response?.data?.error || error.message)
+        }
+    
     }
 
     return (
@@ -38,13 +56,13 @@ const RatingModal = ({ ratingModal, setRatingModal }) => {
                     ))}
                 </div>
                 <textarea
-                    className='w-full p-2 border border-gray-300 rounded-md mb-4 focus:outline-none focus:ring-2 focus:ring-green-400'
+                    className='w-full p-2 border border-gray-300 rounded-md mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500'
                     placeholder='Write your review (optional)'
                     rows='4'
                     value={review}
                     onChange={(e) => setReview(e.target.value)}
                 ></textarea>
-                <button onClick={e => toast.promise(handleSubmit(), { loading: 'Submitting...' })} className='w-full bg-green-500 text-white py-2 rounded-md hover:bg-green-600 transition'>
+                <button onClick={e => toast.promise(handleSubmit(), { loading: 'Submitting...' })} className='w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 rounded-md transition cursor-pointer'>
                     Submit Rating
                 </button>
             </div>

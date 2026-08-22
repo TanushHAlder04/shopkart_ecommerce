@@ -3,7 +3,7 @@ import { useEffect, useState } from "react"
 import { format } from "date-fns"
 import toast from "react-hot-toast"
 import { DeleteIcon } from "lucide-react"
-import { couponDummyData } from "@/assets/assets"
+
 import { useAuth } from "@clerk/nextjs"
 import axios from "axios"
 
@@ -26,7 +26,7 @@ export default function AdminCoupons() {
 
     const fetchCoupons = async () => {
         try {
-            const{token} = await getToken()
+            const token = await getToken()
             const {data} = await axios.get('/api/admin/coupon' , {
                 headers: {Authorization: `Bearer ${token}`}
              })
@@ -40,7 +40,7 @@ export default function AdminCoupons() {
         e.preventDefault()
         // Logic to add a coupon
         try {
-            const{token} = await getToken()
+            const token = await getToken()
 
             newCoupon.discount = Number(newCoupon.discount)
             newCoupon.expiresAt = new Date(newCoupon.expiresAt)

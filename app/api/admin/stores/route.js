@@ -1,12 +1,12 @@
 import { prisma } from "@/lib/prisma"
 import authAdmin from "@/middlewares/authAdmin"
-import { getAuth } from "@clerk/nextjs/server"
+import { auth } from '@clerk/nextjs/server';
 import { NextResponse } from "next/server"
 
 //Get all pending approved store 
 export async function GET(request){
     try {
-        const {userId} = getAuth(request)
+        const { userId } = await auth()
         const isAdmin = await authAdmin(userId)
 
         if(!isAdmin){

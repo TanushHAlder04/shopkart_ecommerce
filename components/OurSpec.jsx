@@ -5,7 +5,8 @@ import { ourSpecsData } from '@/assets/assets'
 const OurSpecs = () => {
 
     return (
-        <div className='px-6 my-20 max-w-6xl mx-auto'>
+        <div id="about" className='px-6 my-20 max-w-6xl mx-auto scroll-mt-10'>
+            <div className="w-full h-px bg-gradient-to-r from-transparent via-slate-400/80 to-transparent mb-20" />
             <Title visibleButton={false} title='Our Specifications' description="We offer top-tier service and convenience to ensure your shopping experience is smooth, secure and completely hassle-free." />
 
             <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-7 gap-y-10 mt-26'>

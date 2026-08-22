@@ -2,9 +2,6 @@
 const nextConfig = {
     images: {
         unoptimized: true
-    },
-    outputFileTracingIncludes: {
-        '/*': ['./lib/generated/prisma/**/*']
     }
 };
 

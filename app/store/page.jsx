@@ -1,6 +1,9 @@
 'use client'
-import { dummyStoreDashboardData } from "@/assets/assets"
+
 import Loading from "@/components/Loading"
+import { useAuth } from "@clerk/nextjs"
+import axios from "axios"
+import toast from "react-hot-toast"
 import { CircleDollarSignIcon, ShoppingBasketIcon, StarIcon, TagsIcon } from "lucide-react"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
@@ -8,11 +11,15 @@ import { useEffect, useState } from "react"
 
 export default function Dashboard() {
 
+    const {getToken} = useAuth()
+
     const currency = process.env.NEXT_PUBLIC_CURRENCY_SYMBOL || '$'
 
     const router = useRouter()
 
     const [loading, setLoading] = useState(true)
+    const [storeInfo, setStoreInfo] = useState(null)
+    const [connectingStripe, setConnectingStripe] = useState(false)
     const [dashboardData, setDashboardData] = useState({
         totalProducts: 0,
         totalEarnings: 0,
@@ -28,8 +35,41 @@ export default function Dashboard() {
     ]
 
     const fetchDashboardData = async () => {
-        setDashboardData(dummyStoreDashboardData)
-        setLoading(false)
+        try {
+            let token = null;
+            try {
+                token = await getToken();
+            } catch (e) {}
+            const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
+            const { data: sellerData } = await axios.get('/api/store/is-seller', { headers });
+            setStoreInfo(sellerData.storeInfo);
+
+            const { data } = await axios.get('/api/store/dashboard', { headers });
+            setDashboardData(data.dashboardData);
+        } catch (error) {
+            toast.error(error?.response?.data?.error || error.message);
+        }
+        setLoading(false);
+    }
+
+    const handleConnectStripe = async () => {
+        try {
+            setConnectingStripe(true);
+            let token = null;
+            try {
+                token = await getToken();
+            } catch (e) {}
+            const headers = token ? { Authorization: `Bearer ${token}` } : {};
+            const { data } = await axios.post('/api/store/onboard', {}, { headers });
+            if (data.url) {
+                window.location.href = data.url;
+            }
+        } catch (err) {
+            toast.error(err?.response?.data?.error || err.message);
+        } finally {
+            setConnectingStripe(false);
+        }
     }
 
     useEffect(() => {
@@ -41,6 +81,23 @@ export default function Dashboard() {
     return (
         <div className=" text-slate-500 mb-28">
             <h1 className="text-2xl">Seller <span className="text-slate-800 font-medium">Dashboard</span></h1>
+
+            {storeInfo && storeInfo.stripeAccountStatus !== 'active' && (
+                <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 my-4 flex max-sm:flex-col items-center justify-between gap-4">
+                    <div>
+                        <h3 className="text-amber-800 font-medium">Stripe Connect Account Required</h3>
+                        <p className="text-amber-700 text-sm">Connect your Stripe account to start receiving automated payouts for sold products.</p>
+                    </div>
+                    <button
+                        id="connect-stripe-btn"
+                        onClick={handleConnectStripe}
+                        disabled={connectingStripe}
+                        className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md text-sm font-medium transition whitespace-nowrap"
+                    >
+                        {connectingStripe ? "Connecting..." : "Connect Stripe"}
+                    </button>
+                </div>
+            )}
 
             <div className="flex flex-wrap gap-5 my-10 mt-4">
                 {
