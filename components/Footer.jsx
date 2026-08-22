@@ -26,6 +26,8 @@ const Footer = () => {
                 { text: "Home", path: '/', icon: null },
                 { text: "Become Plus Member", path: '/pricing', icon: null },
                 { text: "Create Your Store", path: '/create-store', icon: null },
+                { text: "Store Dashboard", path: '/store', icon: null },
+                { text: "Admin Dashboard", path: '/admin', icon: null },
             ]
         },
         {

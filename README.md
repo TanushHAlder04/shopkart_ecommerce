@@ -19,10 +19,8 @@ An enterprise-grade, high-concurrency multi-vendor e-commerce platform engineere
 - [Usage & User Flows](#-usage--user-flows)
 - [Testing & Quality Assurance](#-testing)
 - [Project Structure](#-project-structure)
-- [Verification Log](#-verification-log)
 - [License](#-license)
-- [Acknowledgements](#-acknowledgements)
-- [Contact & Support](#-contact--support)
+- [Contact](#-contact)
 
 ---
 
@@ -373,19 +371,7 @@ npx playwright test
 
 ---
 
-## 📊 Verification Log
 
-All verification suites have been executed against the live codebase:
-
-| Verification Target | Command | Result | Pass/Fail Count |
-| :--- | :--- | :--- | :--- |
-| **Unit & Integration Suite** | `npx vitest run` | Passed | 12 / 12 passed across 4 suites |
-| **End-to-End Suite** | `npx playwright test` | Passed | 3 / 3 passed across 3 scenarios |
-| **Next.js Production Build** | `npm run build` | Passed | 42 static pages & 20 API routes compiled |
-| **Prisma Client Generation** | `npx prisma generate` | Passed | Client generated cleanly |
-| **Code Quality & Linter** | `npm run lint` | Passed | 0 errors |
-
----
 
 ## 📜 License
 
@@ -396,17 +382,6 @@ MIT License
 Copyright (c) 2025 Tanush Halder
 ```
 
----
-
-## 👏 Acknowledgements
-
-* [Next.js Documentation](https://nextjs.org/docs)
-* [Prisma ORM](https://www.prisma.io/)
-* [Clerk Documentation](https://clerk.com/docs)
-* [Stripe Connect Documentation](https://stripe.com/docs/connect)
-* [Upstash Redis](https://upstash.com/docs/redis)
-* [Neon Serverless PostgreSQL](https://neon.tech/docs)
-* [Lucide Icons](https://lucide.dev/)
 
 ---
 
